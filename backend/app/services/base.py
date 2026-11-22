@@ -14,6 +14,8 @@ class BaseModuleService:
     STATUS_ORDER: list[str] = []
     ACTION_RULES: dict[str, str] = {}
     NEGATIVE_ACTIONS: list[str] = []
+    # 终态集合：进入后不再视为待处理；为空时退化为状态序列末位，保持既有语义。
+    TERMINAL_STATUSES: list[str] = []
 
     def list_entries(
         self,
@@ -66,8 +68,9 @@ class BaseModuleService:
         target = self.ACTION_RULES.get(action)
         if target is None:
             return None, f"动作「{action}」不属于{self.MODULE}可执行范围"
+        terminal = self.TERMINAL_STATUSES or self.STATUS_ORDER[-1:]
         entry["status"] = target
-        entry["pending"] = target != self.STATUS_ORDER[-1]
+        entry["pending"] = target not in terminal
         entry["abnormal"] = action in self.NEGATIVE_ACTIONS
         return entry, f"{self.ENTITY}已{action}"
 
